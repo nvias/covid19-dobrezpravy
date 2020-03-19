@@ -129,7 +129,7 @@ class InfoBar extends React.Component {
 
   render() {
     return (
-      <Card style={[styles.cardStyle,{flex: 2, marginRight: 32}]}>
+      <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
         <View style={[styles.infoHeader,{flexDirection: "row"}]}>
           <InfoMenuItem title="O co se snažíme" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
           <InfoMenuItem title="Hry" enabled={this.state.view==1} onClick={this.setPane} pos={1} this={this}/>
@@ -158,16 +158,26 @@ export default class App extends React.Component {
   state = {
     numberOfHealed: 0,
     mobile: false,
+    compactMode: false
   }
 
   render() {
     return (
-      <View style={styles.main} onLayout={this.onResized.bind(this)}>
+      <View style={styles.main}>
         <TopBar></TopBar>
         <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}}>
-          <View style={styles.pageContent}>
-            <InfoBar />
-            <Card style={[styles.cardStyle,{width: "400px", height: "600px"},{marginLeft: 32}]}>
+          <View style={[styles.pageContent,this.state.mobile || this.state.compactMode ? 
+          {flexDirection: "column-reverse", 
+          paddingHorizontal: 64,
+          paddingVertical: 32,
+          paddingTop: 16,
+          justifyContent: "center"} : 
+
+          {flexDirection: "row"
+          }]}>
+            <InfoBar onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32}/>
+
+            <Card style={[styles.cardStyle, this.state.mobile || this.state.compactMode ? {height: "600px", marginBottom: 32} : {width: "400px", height: "600px", marginLeft: 32}]}>
               <CardHeader title="Náš koronabot" />
               <ScrollView>
                 
@@ -179,7 +189,14 @@ export default class App extends React.Component {
     );
   }
 
-  onResized() {
+  onResized(layout) {
+    if (layout.width < 400 && !this.state.compactMode) {
+      this.setState({compactMode: true})
+    }
+
+    if (layout.width > 1000 && this.state.compactMode) {
+      this.setState({compactMode: false})
+    }
   }
 
   getCovidRecovered() {
@@ -222,9 +239,8 @@ const styles = StyleSheet.create({
   topbarText: {
     color: "white",
     width: "100%",
-    textAlign: "left",
+    textAlign: "center",
     fontStyle: "italic",
-    paddingLeft: 16,
     fontSize: 48,
   },
   pageContent: {
@@ -232,7 +248,6 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     paddingTop: 16,
     flex: 1,
-    flexDirection: "row",
   },
   cardStyle: {
     backgroundColor: "rgba(255,255,255,0.5)"
