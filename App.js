@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ImageBackground, Dimensions, TouchableOpacity, Image, Animated, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Image, Animated, ScrollView, FlatList } from 'react-native';
 
 var cheerio = require('react-native-cheerio');
 
@@ -86,16 +86,20 @@ class InfoBar extends React.Component {
   state = {
     view: 0,
     opacity: new Animated.Value(0),
-    itemHeight: 0
+    itemHeight: 0,
+    gameGridCols: 3,
   }
 
   setPane(pos) {
-    this.setState({view: pos})
-    this.animateText()
+    if (pos != this.state.view) {
+      this.setState({view: pos})
+      this.animateText()
+    }
   }
 
   componentDidMount() {
     this.animateText()
+    this.games = ["covid-shooter"]
   }
 
   animateText() {
@@ -127,6 +131,26 @@ class InfoBar extends React.Component {
     )
   }
 
+
+
+  gameIcon = ({item, index}) => {
+    return (
+      <View style={{flex:1, margin:32}}>
+        <TouchableOpacity onPress={() => window.open({"covid-shooter":"https://scratch.mit.edu/projects/377501008/embed"}[item],"_blank")}>
+          <Image style={{width:300,height:226,flex:1}} source={{uri: {"covid-shooter":require("./assets/game_icons/covid-shooter.png")}[item]}} />
+        </TouchableOpacity>
+      <Text style={{flex:1,textAlign: "center", color: "white", fontSize: 18}}>{{"covid-shooter":"Na virus se zbraní"}[item]}</Text>
+      </View>
+    )
+  }
+
+  roundTo(r, to) {
+    for (let i = 0; i < r.length % to; i++) {
+      r.push("")
+    }
+    return r;
+  }
+
   render() {
     return (
       <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
@@ -136,8 +160,8 @@ class InfoBar extends React.Component {
           <InfoMenuItem title="Informace" enabled={this.state.view==2} onClick={this.setPane} pos={2} this={this}/>
         </View>
         
-        <Animated.View style={{height: "100%", maxHeight: "800px", padding: 32, opacity: this.state.opacity}}>
-          <ScrollView ref={this.scrollview}>
+        <Animated.View style={{height: "100%", height: "800px", opacity: this.state.opacity}}>
+          <ScrollView ref={this.scrollview} style={{padding: 32}}>
             { this.state.view==0 &&
               <View>
               <Header>Lorem ipsum dolor sit</Header>
@@ -146,6 +170,16 @@ class InfoBar extends React.Component {
               <Paragraph>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Duis risus. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Phasellus enim erat, vestibulum vel, aliquam a, posuere eu, velit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce aliquam vestibulum ipsum. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Integer malesuada. Nullam sit amet magna in magna gravida vehicula. Aliquam erat volutpat.</Paragraph>
               <Paragraph>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Duis risus. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Phasellus enim erat, vestibulum vel, aliquam a, posuere eu, velit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce aliquam vestibulum ipsum. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Integer malesuada. Nullam sit amet magna in magna gravida vehicula. Aliquam erat volutpat.</Paragraph>
               </View>
+            }
+            { this.state.view==1 &&
+              <FlatList 
+              data={this.roundTo(this.games,this.gameGridCols)}
+              renderItem={this.gameIcon}
+              numColumns={3}
+              style={{width: "100%",flex:1}}
+              contentContainerStyle={{alignItems: "center"}}
+              listKey="games"
+            />
             }
           </ScrollView>
         </Animated.View>
@@ -168,7 +202,7 @@ export default class App extends React.Component {
         <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}}>
           <View style={[styles.pageContent,this.state.mobile || this.state.compactMode ? 
           {flexDirection: "column-reverse", 
-          paddingHorizontal: 64,
+          paddingHorizontal: 32,
           paddingVertical: 32,
           paddingTop: 16,
           justifyContent: "center"} : 
@@ -182,11 +216,29 @@ export default class App extends React.Component {
               <ScrollView>
                 
               </ScrollView>
+              <TextInput style={{width: "100%", height: "32px", backgroundColor: "white", borderBottomLeftRadius: "4px", borderBottomRightRadius: "4px", paddingLeft: 8}}
+              onSubmitEditing={this.submit}/>
             </Card>
           </View>
         </ImageBackground>
+        <ImageBackground source={{uri: require('./assets/footer.jpg')}} style={{height: 100, width: "100%", justifyContent: "center"}}>
+        <TouchableOpacity onPress={this.nviasLink}>
+          <Image
+            style={{width: 165, height: 72, alignSelf: "center"}}
+            source={{uri: 'https://www.nvias.org/wp-content/uploads/2017/05/nvias_logo-e1496052667955.png'}}
+          />
+        </TouchableOpacity>
+        </ImageBackground>
       </View>
     );
+  }
+
+  submit() {
+    console.log("submit")
+  }
+
+  nviasLink() {
+    window.location.replace("https://www.nvias.org");
   }
 
   onResized(layout) {
@@ -194,7 +246,7 @@ export default class App extends React.Component {
       this.setState({compactMode: true})
     }
 
-    if (layout.width > 1000 && this.state.compactMode) {
+    if (layout.width > 1064 && this.state.compactMode) {
       this.setState({compactMode: false})
     }
   }
