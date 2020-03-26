@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Image, Animated, ScrollView, FlatList, TouchableHighlight } from 'react-native';
+import Iframe from 'react-iframe'
 import { MaterialIcons } from '@expo/vector-icons';
 import Hyperlink from 'react-native-hyperlink'
 
@@ -105,23 +106,24 @@ class InfoBar extends React.Component {
     view: 1,
     opacity: new Animated.Value(0),
     itemHeight: 0,
-    news: [{"heading":"Koronavirus ustupuje"}]
+    news: [],
+    showGame: false
   }
 
   setPane(pos) {
     if (pos != this.state.view) {
       this.setState({view: pos})
       this.animateText()
+      this.setState({showGame: false});
     }
   }
 
   componentDidMount() {
-    this.animateText()
-    this.games = ["covid-shooter"]
     fetch("https://colon-yrroux.firebaseio.com/news.json").then(response => response.text()).then(response => {
       response = JSON.parse(response);
       this.setState({news: response})
-    })
+    });
+    this.animateText();
   }
 
   animateText() {
@@ -154,18 +156,6 @@ class InfoBar extends React.Component {
   }
 
 
-
-  gameIcon = ({item, index}) => {
-    return (
-      <View style={{flex:1, margin:32}}>
-        <TouchableOpacity onPress={() => window.open({"covid-shooter":"https://scratch.mit.edu/projects/377501008/embed"}[item],"_blank")}>
-          <Image style={{width:300,height:226,flex:1}} source={{uri: {"covid-shooter":require("./assets/game_icons/covid-shooter.png")}[item]}} />
-        </TouchableOpacity>
-      <Text style={{flex:1,textAlign: "center", color: "white", fontSize: 18, fontFamily: "Inter, sans-serif"}}>{{"covid-shooter":"Na virus se zbraní"}[item]}</Text>
-      </View>
-    )
-  }
-
   roundTo(r, to) {
     for (let i = 0; i < r.length % to; i++) {
       r.push("")
@@ -177,7 +167,7 @@ class InfoBar extends React.Component {
     return (
       <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
         <View style={[styles.infoHeader,{flexDirection: "row"}]}>
-          <InfoMenuItem title="Hry" enabled={this.state.view==1} onClick={this.setPane} pos={1} this={this}/>
+          <InfoMenuItem title="KoronaHra" enabled={this.state.view==1} onClick={this.setPane} pos={1} this={this}/>
           <InfoMenuItem title="Zprávy" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
           <InfoMenuItem title="Informace" enabled={this.state.view==2} onClick={this.setPane} pos={2} this={this}/>
         </View>
@@ -197,16 +187,21 @@ class InfoBar extends React.Component {
                 listKey="news"
               />
             }
-            { this.state.view==1 &&
-              <FlatList 
-              data={this.games}
-              renderItem={this.gameIcon}
-              numColumns={this.props.gameMenuCols}
-              style={{width: "100%",flex:1}}
-              contentContainerStyle={{alignItems: "center"}}
-              listKey="games"
-              key={this.props.gameMenuCols}
-            />
+            { this.state.view==1&&!this.state.showGame &&
+              <View style={{flex:1, margin:32}}>
+                <TouchableOpacity onPress={() => this.setState({showGame: true})}>
+                <Image style={{width:612,height:472,flex:1, alignSelf: "center", marginBottom: 8}} source={{uri: require("./assets/game_icons/covid-shooter.png")}} />
+                </TouchableOpacity>
+              <Text style={{flex:1,textAlign: "center", color: "white", fontSize: 18, fontFamily: "Inter, sans-serif"}}>Na virus se zbraní (Stiskni pro spuštění)</Text>
+              </View>
+            }
+            { this.state.view==1&&this.state.showGame &&
+              <View style={{flex:1}}>
+                <Iframe url="https://scratch.mit.edu/projects/377501008/embed"
+                  width="100%"
+                  height="700"
+                  />
+              </View>
             }
             { this.state.view==2 &&
             <View>
@@ -270,7 +265,7 @@ export default class App extends React.Component {
                   data={this.state.hints}
                   renderItem={({item, index}) => {
                     return (
-                      <View style={{backgroundColor:"#e0e0e0", borderRadius: 20, padding: 8, paddingHorizontal: 12, margin: 4}}>
+                      <View style={{backgroundColor:"#e0e0e0", borderRadius: 20, padding: 8, paddingHorizontal: 12, margin: 8}}>
                         <TouchableOpacity onPress={() => {
                           this.askCoronaBot(item);
                           this.setState({botmessage:""});
@@ -285,7 +280,7 @@ export default class App extends React.Component {
                     )
                   }}
                   numColumns={4}
-                  style={[{flex:1},this.state.showHints ? {padding: 4} : {}]}
+                  style={[{flex:1}]}
                   removeClippedSubviews={true}
                   columnWrapperStyle={{ flexWrap: 'wrap', flex: 1}}
                   listKey="hints"
@@ -331,6 +326,17 @@ export default class App extends React.Component {
         )
       }
 
+      if (item.by == "image") {
+        return (
+            <View style={{backgroundColor:"white", padding: 8, paddingHorizontal: 12, marginVertical: 4, borderRadius: 20}}>
+              <TouchableHighlight onPress={() => window.open(item.msg,"_blank")}>
+              <Image source={{uri: item.msg}} style={{height: "250px", width: "100%", borderRadius: 20}} resizeMode='contain'/>
+              </TouchableHighlight>
+              <Text style={{color:"#2d2d2d", fontStyle:"italic", fontFamily: "Inter, sans-serif", fontSize: 16, textAlign: "center"}}>Klikněte pro zobrazení v plné velikosti</Text>
+            </View>
+        )
+      }
+
       if (item.by == "me") {
         return (
           <View style={{backgroundColor:"#441ECC", padding: 8, paddingHorizontal: 12, alignSelf: "flex-end", marginVertical: 4, borderRadius: 20, maxWidth: "80%"}}>
@@ -371,7 +377,24 @@ export default class App extends React.Component {
       fetch("https://covid19-dobrezpravy--danielsykora.repl.co/dfbot2?query=" + encodeURI(q), {method: 'POST'}).then((reply) => reply.text()).then((text) => {
 
         text = JSON.parse(text);
-        this.coronaReply(text.text);
+        console.log(text);
+        if ("pld" in text) {
+          if ("hints" in text.pld) {
+            if ("listValue" in text.pld.hints) {
+              var showhints = [];
+              for (let i = 0; i < text.pld.hints.listValue.values.length; i++) {
+                var e = text.pld.hints.listValue.values[i];
+                showhints.push(e.stringValue);
+              };
+            };
+        };
+          if ("picture" in text.pld) {
+            if ("stringValue" in text.pld.picture) {
+              var pictureLink = text.pld.picture.stringValue;
+        };
+      };
+    };
+        this.coronaReply(text.text, showhints, pictureLink);
 
       }).catch((error) => {
         console.error(error);
@@ -383,16 +406,22 @@ export default class App extends React.Component {
     })
   }
 
-  coronaReply(q) {
+  coronaReply(q, h, pic) {
     this.sleep(150).then(() => {
       this.setState({isBotWriting: false});
       this.sleep(150).then(() => {
-        let msgs = this.state.coronaBotMessages
-        msgs.push({by: "bot", msg: q})
-        this.setState({coronaBotMessages: msgs})
-      })
-    })
-  }
+        let msgs = this.state.coronaBotMessages;
+        msgs.push({by: "bot", msg: q});
+        if (h == undefined) {
+          h = [];
+        };
+        if (pic != undefined) {
+          msgs.push({by: "image", msg: pic});
+        };
+        this.setState({coronaBotMessages: msgs, hints: h});
+      });
+    });
+  };
 
   nviasLink() {
     window.location.replace("https://www.nvias.org");
