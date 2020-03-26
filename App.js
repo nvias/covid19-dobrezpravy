@@ -63,6 +63,14 @@ class Header extends React.Component {
   }
 }
 
+class SubHeader extends React.Component {
+  render() {
+    return (
+    <Text style={{fontSize: 28, fontWeight: 700, fontFamily: "Inter, sans-serif", color: "white", paddingBottom: 8}}>{ this.props.children }</Text>
+    )
+  }
+}
+
 class News extends React.Component {
   render() {
     return (
@@ -205,8 +213,24 @@ class InfoBar extends React.Component {
             }
             { this.state.view==2 &&
             <View>
-              <Header>Lorem ipsum dolor sit</Header>
-              <Paragraph>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Duis risus. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus. Phasellus enim erat, vestibulum vel, aliquam a, posuere eu, velit. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce aliquam vestibulum ipsum. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Integer malesuada. Nullam sit amet magna in magna gravida vehicula. Aliquam erat volutpat.</Paragraph>
+              <Header>Proč?</Header>
+              <Paragraph>Chceme ukázat jak umělá inteligence může pomáhat.{"\n"}...a také se chceme pochlibit, co kluci dokáží :-)</Paragraph>
+
+              <Header>Jak?</Header>
+              <Paragraph>Účastníci kroužku nvias.org Program pro AI tvůrce pro Vás připravili ukázku využití umělé inteligence pro řešení problémů související se šířením Koronaviru. Na projektu pracovalo 8 kluků ve věku 12 - 15 let. První verze vznikla během jednoho týdne, kde se kluci potkali 2x na online kroužku a následně pracovali i mimo čas kroužku - veškerá komunikace probíhala také online.</Paragraph>
+            
+              <Header>Co?</Header>
+              <SubHeader>1. Hra</SubHeader>
+              <Paragraph>Můžete si zahrát hru, kde bojujete proti šíření koronaviru a kde se i dozvíte, jaké ochranné pomůcky byste měli používat.</Paragraph> 
+
+              <SubHeader>2. Koronabot</SubHeader>
+              <Paragraph>Chatbot, se kterým si můžete popovídat o koronaviru trošku z jiného pohledu. Chatbot se Vám bude snažit odpovídat v podobě dobrých zpráv. Chatbot stále kluci doplňují, takže na Vás může čekat vždy nová zpráva.</Paragraph>
+              <Paragraph>Pokud budete mít nějaký tip na doplnění dialogů, napište na info@nvias.org.</Paragraph>
+              
+              <Hyperlink onPress={ (url, text) => window.open(url,"_blank")} linkStyle={{color:"#441ECC",textDecorationLine: "underline"}}>
+              <Paragraph>Nebo také můžete rovnou napsat na GitHub https://github.com/nvias/covid19-dobrezpravy/</Paragraph>
+              </Hyperlink>
+              
             </View>
             }
           </ScrollView>
