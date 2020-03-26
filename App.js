@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Image, Animated, ScrollView, FlatList, TouchableHighlight } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import Hyperlink from 'react-native-hyperlink'
 
 var cheerio = require('react-native-cheerio');
 
@@ -101,7 +102,7 @@ class InfoMenuItem extends React.Component {
 
 class InfoBar extends React.Component {
   state = {
-    view: 0,
+    view: 1,
     opacity: new Animated.Value(0),
     itemHeight: 0,
     news: [{"heading":"Koronavirus ustupuje"}]
@@ -176,8 +177,8 @@ class InfoBar extends React.Component {
     return (
       <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
         <View style={[styles.infoHeader,{flexDirection: "row"}]}>
-          <InfoMenuItem title="Zprávy" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
           <InfoMenuItem title="Hry" enabled={this.state.view==1} onClick={this.setPane} pos={1} this={this}/>
+          <InfoMenuItem title="Zprávy" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
           <InfoMenuItem title="Informace" enabled={this.state.view==2} onClick={this.setPane} pos={2} this={this}/>
         </View>
         
@@ -227,6 +228,8 @@ export default class App extends React.Component {
     compactMode: false,
     botmessage: "",
     coronaBotMessages: [],
+    hints: ["Ahoj!"],
+    showHints: true,
     isBotWriting: false,
     gameMenuCols: 3
   }
@@ -247,7 +250,6 @@ export default class App extends React.Component {
           paddingVertical: 32,
           paddingTop: 16,
           justifyContent: "center"} : 
-
           {flexDirection: "row"
           }]}>
             <InfoBar onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
@@ -258,17 +260,43 @@ export default class App extends React.Component {
               <FlatList
               data={this.state.coronaBotMessages.concat(this.state.isBotWriting ? [{by:"writing"}] : [])}
               renderItem={this.botMessages}
-              style={{width: "100%", height:"100%", flexDirection: "column-reverse", padding: 8}}
+              style={{width: "100%", height:"100%", flexDirection: "column-reverse", padding: 8, paddingVertical: 4}}
               contentContainerStyle={{}}
               listKey="games"
               />
               </ScrollView>
+              <View style={{flexDirection: "column", backgroundColor: "white"}}>
+                <FlatList
+                  data={this.state.hints}
+                  renderItem={({item, index}) => {
+                    return (
+                      <View style={{backgroundColor:"#e0e0e0", borderRadius: 20, padding: 8, paddingHorizontal: 12, margin: 4}}>
+                        <TouchableOpacity onPress={() => {
+                          this.askCoronaBot(item);
+                          this.setState({botmessage:""});
+                          this.textInput.clear();
+                          this.setState({hints:[],showHints: false})
+                        }}>
+                          <View style={{backgroundColor:"#e0e0e0", borderRadius: 20}}>
+                            <Text style={{color:"#2d2d2d", fontFamily: "Inter, sans-serif", fontSize: 20}}>{item}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    )
+                  }}
+                  numColumns={4}
+                  style={[{flex:1},this.state.showHints ? {padding: 4} : {}]}
+                  removeClippedSubviews={true}
+                  columnWrapperStyle={{ flexWrap: 'wrap', flex: 1}}
+                  listKey="hints"
+                />
               <View style={{flexDirection: "row"}}>
-                <TextInput maxLength={256} style={{width: "100%", height: "32px", backgroundColor: "white", borderBottomLeftRadius: "4px", paddingHorizontal: 8, fontFamily: "Inter, sans-serif"}}
+                <TextInput maxLength={256} style={{width: "100%", height: "48px", backgroundColor: "white", borderBottomLeftRadius: "4px", paddingHorizontal: 10, fontFamily: "Inter, sans-serif", fontSize: 20}}
                 onSubmitEditing={this.submit} placeholder="Pište zprávu sem..." onChangeText={(text) => this.setState({botmessage:text})} ref={input => { this.textInput = input }}/>
                 <TouchableHighlight onPress={this.submit}>
-                  <MaterialIcons name="send" color="#441ECC" size={24} style={{padding: 4, backgroundColor: "white", borderBottomRightRadius: "4px"}}/>
+                  <MaterialIcons name="send" color="#441ECC" size={36} style={{padding: 6, backgroundColor: "white", borderBottomRightRadius: "4px"}}/>
                 </TouchableHighlight>
+              </View>
               </View>
             </Card>
           </View>
@@ -289,31 +317,33 @@ export default class App extends React.Component {
     if (item["by"] !== undefined) {
       if (item.by == "writing") {
         return (
-          <View style={{backgroundColor:"#e0e0e0", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 1, borderRadius: 20}}>
-              <Text style={{color:"#2d2d2d", fontStyle:"italic", fontFamily: "Inter, sans-serif"}}>Píše...</Text>
+          <View style={{backgroundColor:"#e0e0e0", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 4, borderRadius: 20}}>
+              <Text style={{color:"#2d2d2d", fontStyle:"italic", fontFamily: "Inter, sans-serif", fontSize: 20}}>Píše...</Text>
             </View>
         )
       }
 
       if (item.by == "error") {
         return (
-          <View style={{backgroundColor:"red", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 1, borderRadius: 20}}>
-              <Text style={{color:"#white", fontFamily: "Inter, sans-serif"}}>Promiňte, nejsem nyní k dispozici. Zkuste to znovu později.</Text>
+          <View style={{backgroundColor:"red", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 4, borderRadius: 20}}>
+              <Text style={{color:"#white", fontFamily: "Inter, sans-serif", fontSize: 20}}>Promiňte, nejsem nyní k dispozici. Zkuste to znovu později.</Text>
             </View>
         )
       }
 
       if (item.by == "me") {
         return (
-          <View style={{backgroundColor:"#441ECC", padding: 8, paddingHorizontal: 12, alignSelf: "flex-end", marginVertical: 1, borderRadius: 20, maxWidth: "80%"}}>
-            <Text style={{color:"white", fontFamily: "Inter, sans-serif"}}>{item.msg}</Text>
+          <View style={{backgroundColor:"#441ECC", padding: 8, paddingHorizontal: 12, alignSelf: "flex-end", marginVertical: 4, borderRadius: 20, maxWidth: "80%"}}>
+            <Text style={{color:"white", fontFamily: "Inter, sans-serif", fontSize: 20}}>{item.msg}</Text>
           </View>
         )
         } else {
           return (
-            <View style={{backgroundColor:"white", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 1, borderRadius: 20, maxWidth: "80%"}}>
-              <Text style={{color:"black", fontFamily: "Inter, sans-serif"}}>{item.msg}</Text>
-            </View>
+            <Hyperlink onPress={ (url, text) => window.open(url,"_blank")} linkStyle={{color:"#441ECC",textDecorationLine: "underline"}}>
+              <View style={{backgroundColor:"white", padding: 8, paddingHorizontal: 12, alignSelf: "flex-start", marginVertical: 4, borderRadius: 20, maxWidth: "80%"}}>
+                <Text style={{color:"black", fontFamily: "Inter, sans-serif", fontSize: 20}}>{item.msg}</Text>
+              </View>
+            </Hyperlink>
           )
         }
       }
@@ -326,8 +356,9 @@ export default class App extends React.Component {
   submit() {
     if (this.state.botmessage != "") {
       this.askCoronaBot(this.state.botmessage)
-      this.setState({botmessage:""})
+      this.setState({botmessage:"",hints:[],showHints: false})
       this.textInput.clear()
+      this.textInput.getRenderedComponent().focus()
     }
   }
 
@@ -337,7 +368,12 @@ export default class App extends React.Component {
     this.setState({coronaBotMessages: msgs})
     this.sleep(700).then(() => {
       this.setState({isBotWriting: true});
-      fetch("https://covid19-dobrezpravy--danielsykora.repl.co/dfbot?query=" + encodeURI(q), {method: 'POST'}).then((reply) => reply.text()).then((text) => {this.coronaReply(text)}).catch((error) => {
+      fetch("https://covid19-dobrezpravy--danielsykora.repl.co/dfbot2?query=" + encodeURI(q), {method: 'POST'}).then((reply) => reply.text()).then((text) => {
+
+        text = JSON.parse(text);
+        this.coronaReply(text.text);
+
+      }).catch((error) => {
         console.error(error);
         this.setState({isBotWriting: false});
         let msgs = this.state.coronaBotMessages
