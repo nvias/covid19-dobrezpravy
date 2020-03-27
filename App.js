@@ -214,7 +214,7 @@ class InfoBar extends React.Component {
             { this.state.view==2 &&
             <View>
               <Header>Proč?</Header>
-              <Paragraph>Chceme ukázat jak umělá inteligence může pomáhat. Chceme šířit dobré zprávy a tím podpořit dobrou náladu v aktuální situaci.{"\n"}...a také se chceme pochlubit, co kluci dokáží :-)</Paragraph>
+              <Paragraph>Chceme ukázat jak umělá inteligence může pomáhat. Šíříme dobré zprávy a tím podporujeme dobrou náladu v aktuální situaci.{"\n"}...a také se chceme pochlubit, co kluci dokáží :-)</Paragraph>
 
               <Header>Jak?</Header>
               <Paragraph>Účastníci kroužku nvias.org Program pro AI tvůrce pro Vás připravili ukázku využití umělé inteligence pro řešení problémů související se šířením Koronaviru. Na projektu pracovalo 8 kluků ve věku 12 - 15 let. První verze vznikla během jednoho týdne, kde se kluci potkali 2x na online kroužku a následně pracovali i mimo čas kroužku - veškerá komunikace probíhala také online.</Paragraph>
