@@ -90,7 +90,7 @@ class News extends React.Component {
 class Paragraph extends React.Component {
   render() {
     return (
-    <Text style={{fontSize: 24, color: "white", marginBottom: 16, fontFamily: "Crimson Text, serif"}}>{ this.props.children }</Text>
+    <Text style={{fontSize: 24, color: "white", marginBottom: 14, fontFamily: "serif"}}>{ this.props.children }</Text>
     )
   }
 }
@@ -481,7 +481,7 @@ export default class App extends React.Component {
   }
 
   loadRawHtmlModules() {
-    var css = "@import url('https://rsms.me/inter/inter.css');@import url('https://fonts.googleapis.com/css?family=Crimson+Text&display=swap');",
+    var css = "@import url('https://rsms.me/inter/inter.css');",
     head = document.head || document.getElementsByTagName('head')[0],
     style = document.createElement('style');
 
