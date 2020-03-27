@@ -20,7 +20,6 @@
     "react-native-dialogflow": "^3.2.2",
     "react-native-hyperlink": "0.0.19",
     "react-native-paper": "3.6.0",
-    "react-native-web": "^0.12.2",
-    "react-native-webview": "7.4.3"
+    "react-native-web": "^0.12.2"
   }
 }

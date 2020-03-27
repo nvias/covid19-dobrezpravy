@@ -75,8 +75,8 @@ class News extends React.Component {
   render() {
     return (
         <Card style={{marginVertical: 8}}>
-          <View style={{flexDirection: "row", padding: 8}}>
-            <Image source={{uri: this.props.lnk}} style={{height: 128, width: 128, borderRadius: 4, borderColor: "lightgray", borderWidth: 1}}/>
+          <View style={!this.props.mobile ? {flexDirection: "row", padding: 8} : {flexDirection: "column", padding: 8}}>
+            <Image source={{uri: this.props.lnk}} style={[{borderRadius: 4, borderColor: "lightgray", borderWidth: 1, marginBottom: 16},!this.props.mobile ? {height: 128, width: 128} : {height: 128, width: "100%"}]}/>
             <View style={{flexDirection: "column", marginLeft: 8, flex:1}}>
               <Text style={{fontSize: 20, fontWeight: 700, fontFamily: "Inter, sans-serif", color: "black", paddingBottom: 8}}>{"„" +  this.props.heading + "“"}</Text>
               <Text style={{fontSize: 16, color: "black", marginBottom: 16, fontFamily: "Crimson Text, serif"}}>{ this.props.article }</Text>
@@ -187,7 +187,7 @@ class InfoBar extends React.Component {
                 data={this.state.news}
                 renderItem={({item, index}) => {
                   return (
-                    <News heading={item.heading} article={item.article} lnk={item.lnk} />
+                    <News heading={item.heading} article={item.article} lnk={item.lnk} mobile={this.props.compactNews}/>
                   )
                 }}
                 numColumns={1}
@@ -245,6 +245,7 @@ export default class App extends React.Component {
     numberOfHealed: 0,
     mobile: false,
     compactMode: false,
+    compactNews: false,
     botmessage: "",
     coronaBotMessages: [],
     hints: ["Ahoj!"],
@@ -271,7 +272,7 @@ export default class App extends React.Component {
           justifyContent: "center"} : 
           {flexDirection: "row"
           }]}>
-            <InfoBar onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
+            <InfoBar compactNews={this.state.compactNews} onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
 
             <Card style={[styles.cardStyle, this.state.mobile || this.state.compactMode ? {height: "600px", marginBottom: 32} : {width: "400px", height: "600px", marginLeft: 32}]}>
               <CardHeader title="Náš koronabot" />
@@ -453,11 +454,20 @@ export default class App extends React.Component {
   }
 
   onResized(layout) {
-    if (layout.width < 400 && !this.state.compactMode) {
-      this.setState({compactMode: true})
+    if (layout.width < 600 && this.state.compactNews) {
+      this.setState({compactNews: false})
     }
 
-    if (layout.width > 1064 && this.state.compactMode) {
+    if (layout.width < 400 && !this.state.compactNews) {
+      this.setState({compactNews: true})
+    }
+
+    if (layout.width < 400 && !this.state.compactMode) {
+      this.setState({compactMode: true})
+      this.setState({compactNews: false})
+    }
+
+    if (layout.width > 1100 && this.state.compactMode) {
       this.setState({compactMode: false})
     }
 
