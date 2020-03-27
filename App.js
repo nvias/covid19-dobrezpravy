@@ -198,7 +198,7 @@ class InfoBar extends React.Component {
             { this.state.view==1&&!this.state.showGame &&
               <View style={{flex:1, margin:32}}>
                 <TouchableOpacity onPress={() => this.setState({showGame: true})}>
-                <Image style={{width:612,height:472,flex:1, alignSelf: "center", marginBottom: 8}} source={{uri: require("./assets/game_icons/covid-shooter.png")}} />
+                <Image style={{width:"100%",height:400,flex:1, alignSelf: "center", marginBottom: 8}} source={{uri: require("./assets/game_icons/covid-shooter.png")}} resizeMode='contain'/>
                 </TouchableOpacity>
               <Text style={{flex:1,textAlign: "center", color: "white", fontSize: 18, fontFamily: "Inter, sans-serif"}}>Na virus se zbraní (Stiskni pro spuštění)</Text>
               </View>
@@ -265,7 +265,7 @@ export default class App extends React.Component {
         <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}}>
           <View style={[styles.pageContent,this.state.mobile || this.state.compactMode ? 
           {flexDirection: "column-reverse", 
-          paddingHorizontal: 32,
+          paddingHorizontal: 16,
           paddingVertical: 32,
           paddingTop: 16,
           justifyContent: "center"} : 
@@ -283,9 +283,9 @@ export default class App extends React.Component {
               contentContainerStyle={{}}
               listKey="games"
               />
-              </ScrollView>
+
               <View style={{flexDirection: "column", backgroundColor: "white"}}>
-                <FlatList
+              <FlatList
                   data={this.state.hints}
                   renderItem={({item, index}) => {
                     return (
@@ -294,7 +294,7 @@ export default class App extends React.Component {
                           this.askCoronaBot(item);
                           this.setState({botmessage:""});
                           this.textInput.clear();
-                          this.setState({hints:[],showHints: false})
+                          this.setState({hints:[],showHints: false});
                         }}>
                           <View style={{backgroundColor:"#e0e0e0", borderRadius: 20}}>
                             <Text style={{color:"#2d2d2d", fontFamily: "Inter, sans-serif", fontSize: 20}}>{item}</Text>
@@ -309,13 +309,14 @@ export default class App extends React.Component {
                   columnWrapperStyle={{ flexWrap: 'wrap', flex: 1}}
                   listKey="hints"
                 />
+                </View>
+              </ScrollView>
               <View style={{flexDirection: "row"}}>
                 <TextInput maxLength={256} style={{width: "100%", height: "48px", backgroundColor: "white", borderBottomLeftRadius: "4px", paddingHorizontal: 10, fontFamily: "Inter, sans-serif", fontSize: 20}}
                 onSubmitEditing={this.submit} placeholder="Pište zprávu sem..." onChangeText={(text) => this.setState({botmessage:text})} ref={input => { this.textInput = input }}/>
                 <TouchableHighlight onPress={this.submit}>
                   <MaterialIcons name="send" color="#441ECC" size={36} style={{padding: 6, backgroundColor: "white", borderBottomRightRadius: "4px"}}/>
                 </TouchableHighlight>
-              </View>
               </View>
             </Card>
           </View>
@@ -385,10 +386,10 @@ export default class App extends React.Component {
 
   submit() {
     if (this.state.botmessage != "") {
-      this.askCoronaBot(this.state.botmessage)
-      this.setState({botmessage:"",hints:[],showHints: false})
-      this.textInput.clear()
-      this.textInput.getRenderedComponent().focus()
+      this.askCoronaBot(this.state.botmessage);
+      this.setState({botmessage:"",hints:[],showHints: false});
+      this.textInput.clear();
+      this.textInput.getRenderedComponent().focus();
     }
   }
 
