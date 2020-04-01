@@ -36,10 +36,35 @@ const FadeInView = (props) => {
 }
 
 class TopBar extends React.Component {
+  state = {
+    showStats: false,
+    healed: 0,
+    infected: 0
+  }
+
+  componentDidMount() {
+    fetch("https://covid19-dobrezpravy--danielsykora.repl.co/czstats").then((response) => response.text()).then((response) => {
+      response = JSON.parse(response)
+      this.setState({showStats: true, healed: response.healed, infected: response.infected})
+    })
+  }
+
   render() {
     return (
-        <View style={styles.topbar}>
+        <View style={[styles.topbar,{alignItems: "center"}, this.props.compact ? {flexDirection: "column"} : {flexDirection: "row"}]}>
           <Text style={styles.topbarText}>Covid-19: Dobré zprávy</Text>
+          { this.state.showStats &&
+          <View style={{flexDirection: "row"}}>
+            <Image source={{uri: require("./assets/plus-thick.png")}} style={[{width: 32, height: 32}, this.props.compact ? {} : {marginLeft: 16}]}/>
+            <Text style={{color: "#76FF03", height: "100%", alignSelf: "center", fontFamily: "Inter, sans-serif", fontSize: 24, marginLeft: 4}}>{this.state.healed}</Text>
+          </View>
+          }  
+          { this.state.showStats &&
+          <View style={{flexDirection: "row"}}>
+            <Image source={{uri: require("./assets/biohazard.png")}} style={[{width: 32, height: 32}, this.props.compact ? {} : {marginLeft: 16}]}/>
+            <Text style={{color: "#D50000", height: "100%", alignSelf: "center", fontFamily: "Inter, sans-serif", fontSize: 24, marginLeft: 4}}>{this.state.infected}</Text>
+          </View>
+          }
         </View>
     )
   }
@@ -76,7 +101,7 @@ class News extends React.Component {
     return (
         <Card style={{marginVertical: 8}}>
           <View style={!this.props.mobile ? {flexDirection: "row", padding: 8} : {flexDirection: "column", padding: 8}}>
-            <Image source={{uri: this.props.lnk}} style={[{borderRadius: 4, borderColor: "lightgray", borderWidth: 1, marginBottom: 16},!this.props.mobile ? {height: 128, width: 128} : {height: 128, width: "100%"}]}/>
+            <Image source={{uri: this.props.lnk}} style={[{borderRadius: 4, borderColor: "lightgray", borderWidth: 1},!this.props.mobile ? {height: 128, width: 128} : {height: 128, width: "100%", marginBottom: 16}]}/>
             <View style={{flexDirection: "column", marginLeft: 8, flex:1}}>
               <Text style={{fontSize: 20, fontWeight: 700, fontFamily: "Inter, sans-serif", color: "black", paddingBottom: 8}}>{"„" +  this.props.heading + "“"}</Text>
               <Text style={{fontSize: 16, color: "black", marginBottom: 16, fontFamily: "Crimson Text, serif"}}>{ this.props.article }</Text>
@@ -115,12 +140,14 @@ class InfoBar extends React.Component {
     opacity: new Animated.Value(0),
     itemHeight: 0,
     news: [],
-    showGame: false
+    showGame: false,
+    shrinkGameIcon: false
   }
 
   setPane(pos) {
     if (pos != this.state.view) {
       this.setState({view: pos})
+      window.location.hash = ["zpravy","hra","info"][pos]
       this.animateText()
       this.setState({showGame: false});
     }
@@ -132,6 +159,8 @@ class InfoBar extends React.Component {
       this.setState({news: response})
     });
     this.animateText();
+    this.setState({view: Math.abs(["#zpravy","#hra","#info"].indexOf(window.location.hash))})
+    
   }
 
   animateText() {
@@ -171,6 +200,14 @@ class InfoBar extends React.Component {
     return r;
   }
 
+  onResized(l) {
+    if (l.height > l.width && !this.state.shrinkGameIcon) {
+      this.setState({shrinkGameIcon: true})
+    } else if (l.height * 2.3 < l.width && this.state.shrinkGameIcon) {
+      this.setState({shrinkGameIcon: false})
+    }
+  }
+
   render() {
     return (
       <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
@@ -196,9 +233,9 @@ class InfoBar extends React.Component {
               />
             }
             { this.state.view==1&&!this.state.showGame &&
-              <View style={{flex:1, margin:32}}>
-                <TouchableOpacity onPress={() => this.setState({showGame: true})}>
-                <Image style={{width:"100%",height:400,flex:1, alignSelf: "center", marginBottom: 8}} source={{uri: require("./assets/game_icons/covid-shooter.png")}} resizeMode='contain'/>
+              <View style={[{flex:1},this.props.compactMode ? {margin:0} : {margin:32}]}>
+                <TouchableOpacity onPress={() => {if (!this.props.mobile) {this.setState({showGame: true})} else {window.open("https://scratch.mit.edu/projects/215556802/embed","_blank")}}}>
+                <Image onLayout={(event) => {this.onResized(event.nativeEvent.layout)}}  style={[{width:"100%",flex:1, alignSelf: "center", marginBottom: 8, backgroundColor: "#005959", borderRadius: 4},this.state.shrinkGameIcon ? {height:300} : {height:640}]} source={{uri: require("./assets/game_icons/covid-shooter.png")}} resizeMode='contain'/>
                 </TouchableOpacity>
               <Text style={{flex:1,textAlign: "center", color: "white", fontSize: 18, fontFamily: "Inter, sans-serif"}}>Na virus se zbraní (Stiskni pro spuštění)</Text>
               </View>
@@ -262,7 +299,7 @@ export default class App extends React.Component {
   render() {
     return (
       <View style={styles.main}>
-        <TopBar></TopBar>
+        <TopBar compact={this.state.compactMode || this.state.mobile}></TopBar>
         <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}}>
           <View style={[styles.pageContent,this.state.mobile || this.state.compactMode ? 
           {flexDirection: "column-reverse", 
@@ -272,7 +309,7 @@ export default class App extends React.Component {
           justifyContent: "center"} : 
           {flexDirection: "row"
           }]}>
-            <InfoBar compactNews={this.state.compactNews} onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
+            <InfoBar compactNews={this.state.compactNews} compactMode={this.state.compactMode} mobile={this.state.mobile} onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
 
             <Card style={[styles.cardStyle, this.state.mobile || this.state.compactMode ? {height: "600px", marginBottom: 32} : {width: "400px", height: "600px", marginLeft: 32}]}>
               <CardHeader title="Náš koronabot" />
@@ -518,7 +555,6 @@ const styles = StyleSheet.create({
   },
   topbarText: {
     color: "white",
-    width: "100%",
     textAlign: "center",
     fontSize: 48,
     fontFamily: "Inter, sans-serif",
