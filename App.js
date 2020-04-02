@@ -520,11 +520,11 @@ export default class App extends React.Component {
   }
 
   loadRawHtmlModules() {
-    var css = "@import url('https://rsms.me/inter/inter.css'); div.r-overflowX-11yh6sk > div.css-view-1dbjc4n > div.css-view-1dbjc4n:empty {display:none;} div.r-11yh6sk > div.css-1dbjc4n > div.css-1dbjc4n:empty {display:none;}";
+    var css = "@import url('https://rsms.me/inter/inter.css'); div.r-overflowX-11yh6sk > div.css-view-1dbjc4n > div.css-view-1dbjc4n:empty {display:none;} div.r-11yh6sk > div.css-1dbjc4n > div.css-1dbjc4n:empty {display:none;}",
     // Tohle importuje písmo z webfontu.
     // Také se zde nachází workaround pro edge, do kterého se z
     // neznámého důvodu přidával prázdný blok do chatu. Toto CSS ho skryje.
-    head = document.head || document.getElementsByTagName('head')[0];
+    head = document.head || document.getElementsByTagName('head')[0],
     style = document.createElement('style');
 
     head.appendChild(style);
