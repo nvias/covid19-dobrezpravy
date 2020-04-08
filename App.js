@@ -51,7 +51,7 @@ class TopBar extends React.Component {
 
   render() {
     return (
-        <View style={[styles.topbar,{alignItems: "center"}, this.props.compact ? {flexDirection: "column"} : {flexDirection: "row"}]}>
+        <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}} style={[styles.topbar,{alignItems: "center"}, this.props.compact ? {flexDirection: "column"} : {flexDirection: "row"}]}>
           <Text style={styles.topbarText}>Covid-19: Dobré zprávy</Text>
           { this.state.showStats &&
           <View style={{flexDirection: "row"}}>
@@ -65,7 +65,7 @@ class TopBar extends React.Component {
             <Text style={{color: "#D50000", height: "100%", alignSelf: "center", fontFamily: "Inter, sans-serif", fontSize: 24, marginLeft: 4}}>{this.state.infected}</Text>
           </View>
           }
-        </View>
+        </ImageBackground>
     )
   }
 }
@@ -217,7 +217,7 @@ class InfoBar extends React.Component {
           <InfoMenuItem title="Informace" enabled={this.state.view==2} onClick={this.setPane} pos={2} this={this}/>
         </View>
         
-        <Animated.View style={{height: "100%", height: "800px", opacity: this.state.opacity}}>
+        <Animated.View style={[{height: "100%", opacity: this.state.opacity},this.props.mobile ? {} : {height:"800px"}]}>
           <ScrollView ref={this.scrollview} style={{padding: 32}}>
             { this.state.view==0 &&
                 <FlatList 
@@ -299,9 +299,9 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <View style={styles.main}>
+      <View style={styles.main} imageStyle={{resizeMode: 'contain'}}>
         <TopBar compact={this.state.compactMode || this.state.mobile}></TopBar>
-        <ImageBackground source={{uri: require('./assets/grad.png')}} imageStyle={{resizeMode: 'stretch'}}>
+        <View>
           <View style={[styles.pageContent,this.state.mobile || this.state.compactMode ? 
           {flexDirection: "column-reverse", 
           paddingHorizontal: 16,
@@ -359,8 +359,8 @@ export default class App extends React.Component {
               </View>
             </Card>
           </View>
-        </ImageBackground>
-        <ImageBackground imageStyle={{resizeMode: 'stretch'}} source={{uri: require('./assets/footer.jpg')}} style={{height: 100, width: "100%", justifyContent: "center", alignItems: "center"}}>
+        </View>
+        <ImageBackground imageStyle={{resizeMode: 'stretch'}} source={{uri: require('./assets/footer.png')}} style={{height: 100, width: "100%", justifyContent: "center", alignItems: "center"}}>
         <TouchableHighlight onPress={this.nviasLink} style={{width: 165}}>
           <Image
             style={{width: 165, height: 72, alignSelf: "center"}}
@@ -551,11 +551,16 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   main: {
     backgroundColor: "black",
-    flex:1
+    flex:1,
+    backgroundImage: "url(" + require('./assets/bg.jpg') + ")",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center", 
+    backgroundAttachment: "fixed",
+    backgroundSize: "cover"
   },
   topbar: {
     width: "100%",
-    backgroundColor: "#441ECC",
+    //backgroundColor: "#441ECC",
     justifyContent: "center",
     paddingVertical: 16,
   },
@@ -573,7 +578,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardStyle: {
-    backgroundColor: "rgba(255,255,255,0.5)"
+    backgroundColor: "rgba(255,255,255,0.3)"
   },
   cardHeader: {
     width: "100%",
