@@ -8,6 +8,14 @@ import Webcam from "react-webcam";
 
 var cheerio = require('react-native-cheerio');
 
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // or any pure javascript modules available in npm
 import { Card, TouchableRipple } from 'react-native-paper';
 
@@ -114,6 +122,7 @@ const WebcamCapture = props =>{
     const camera = React.createRef();
     const capture = React.useCallback(
       () => {
+        setError(false)
         const imageSrc = camera.current.getScreenshot();
         fetch('http://34.254.251.230/emotion_predict', {
           method: 'POST',
@@ -122,7 +131,13 @@ const WebcamCapture = props =>{
           return response.text();
         })
         .then((data) => {
-          console.log(data);
+          data = JSON.parse(data);
+          if (data.length == 0) {
+            setError(true)
+          } else {
+            shuffle(data);
+            props.askCorona(["Výstup z kamery: Naštvaný","Výstup z kamery: Znechucený","Výstup z kamery: Vystrašený","Výstup z kamery: Šťastný","Výstup z kamery: Neutrální","Výstup z kamery: Smutný","Výstup z kamery: Překvapený"][["Angry","Disgusted","Fearful","Happy","Neutral","Sad","Surprised"].indexOf(data[0])])
+          }
         });
       }
     );
@@ -130,6 +145,8 @@ const WebcamCapture = props =>{
   const state = {
     cameraHeight: 600,
   }
+
+  const [hasError, setError] = useState(false);
 
   const shrinkCamera = () => {
     capture()
@@ -141,7 +158,7 @@ const WebcamCapture = props =>{
     return (
       <View style={{}}>
         <Text style={{color: "white",textAlign: "center",fontSize: 32,fontFamily: "Inter, sans-serif",fontWeight: 700, marginBottom: 10}}>Tvoje kamera</Text>
-          <Animated.View style={{}}>
+          <View style={{}}>
             <Webcam 
             videoConstraints={videoConstraints}
             audio={false}
@@ -149,7 +166,13 @@ const WebcamCapture = props =>{
             screenshotFormat="image/jpeg"
             style={{width: "100%",maxHeight: state.cameraHeight}}
             />
-          </Animated.View>
+          </View>
+        { hasError &&
+        <View style={{alignItems: "center", marginTop: 16}}>
+          <Text style={{color: "white",textAlign: "center",fontSize: 32,fontFamily: "Inter, sans-serif",fontWeight: 700, marginBottom: 10}}>Nenašli jsme žádnou emoci</Text>
+          <Paragraph>Zkuste kameru použít z jiného úhlu.</Paragraph>
+        </View>
+        }
         <View style={{backgroundColor:"#441ECC", borderRadius: 20, padding: 8, paddingHorizontal: 12, margin: 8, maxWidth: 150, alignSelf: "center"}}>
           <TouchableOpacity onPress={shrinkCamera}>
             <Text style={{color: "white",textAlign: "center",fontSize: 20,fontFamily: "Inter, sans-serif"}}>Vyfotit</Text>
@@ -250,7 +273,7 @@ class InfoBar extends React.Component {
         <Animated.View style={[{height: "100%", opacity: this.state.opacity},this.props.mobile ? {} : {height:"800px"}]}>
           <ScrollView ref={this.scrollview} style={{padding: 32}}>
             { this.state.view==0 &&
-                <WebcamCapture onUserMedia={this.cameraReceivedMedia}/>
+                <WebcamCapture askCorona={this.props.askCorona} onUserMedia={this.cameraReceivedMedia}/>
             }
             { this.state.view==1&&!this.state.showGame &&
               <View style={[{flex:1},this.props.compactMode ? {margin:0} : {margin:32}]}>
@@ -330,7 +353,7 @@ export default class App extends React.Component {
           justifyContent: "center"} : 
           {flexDirection: "row"
           }]}>
-            <InfoBar compactNews={this.state.compactNews} compactMode={this.state.compactMode} mobile={this.state.mobile} onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
+            <InfoBar askCorona={this.askCoronaBot.bind(this)} compactNews={this.state.compactNews} compactMode={this.state.compactMode} mobile={this.state.mobile} onLayout={(event) => {this.onResized(event.nativeEvent.layout)}} margin={this.state.mobile || this.state.compactMode ? 0 : 32} gameMenuCols={this.state.gameMenuCols}/>
 
             <Card style={[styles.cardStyle, this.state.mobile || this.state.compactMode ? {marginBottom: 32} : {width: "400px",marginLeft: 32},{height:"600px"}]}>
               <CardHeader title="Náš koronabot" />
