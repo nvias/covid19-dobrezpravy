@@ -1,39 +1,15 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Image, Animated, ScrollView, FlatList, TouchableHighlight } from 'react-native';
+import { Text, View, StyleSheet, ImageBackground, TextInput, TouchableOpacity, Image, Animated, ScrollView, FlatList, TouchableHighlight, Button } from 'react-native';
 import Iframe from 'react-iframe'
 import { MaterialIcons } from '@expo/vector-icons';
 import Hyperlink from 'react-native-hyperlink'
+import Webcam from "react-webcam";
 
 var cheerio = require('react-native-cheerio');
 
 // or any pure javascript modules available in npm
 import { Card, TouchableRipple } from 'react-native-paper';
-
-const FadeInView = (props) => {
-  const [fadeAnim] = useState(new Animated.Value(0))  // Initial value for opacity: 0
-
-  React.useEffect(() => {
-    Animated.timing(
-      fadeAnim,
-      {
-        toValue: 1,
-        duration: 1000,
-      }
-    ).start();
-  }, [])
-
-  return (
-    <Animated.View                 // Special animatable View
-      style={{
-        ...props.style,
-        opacity: fadeAnim,         // Bind opacity to animated value
-      }}
-    >
-      {props.children}
-    </Animated.View>
-  );
-}
 
 class TopBar extends React.Component {
   state = {
@@ -134,6 +110,55 @@ class InfoMenuItem extends React.Component {
   }
 }
 
+const WebcamCapture = props =>{
+    const camera = React.createRef();
+    const capture = React.useCallback(
+      () => {
+        const imageSrc = camera.current.getScreenshot();
+        fetch('http://34.254.251.230/emotion_predict', {
+          method: 'POST',
+          body: imageSrc
+        }).then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          console.log(data);
+        });
+      }
+    );
+
+  const state = {
+    cameraHeight: 600,
+  }
+
+  const shrinkCamera = () => {
+    capture()
+  }
+
+  const videoConstraints = {
+    facingMode: "user",
+  }
+    return (
+      <View style={{}}>
+        <Text style={{color: "white",textAlign: "center",fontSize: 32,fontFamily: "Inter, sans-serif",fontWeight: 700, marginBottom: 10}}>Tvoje kamera</Text>
+          <Animated.View style={{}}>
+            <Webcam 
+            videoConstraints={videoConstraints}
+            audio={false}
+            ref={camera}
+            screenshotFormat="image/jpeg"
+            style={{width: "100%",maxHeight: state.cameraHeight}}
+            />
+          </Animated.View>
+        <View style={{backgroundColor:"#441ECC", borderRadius: 20, padding: 8, paddingHorizontal: 12, margin: 8, maxWidth: 150, alignSelf: "center"}}>
+          <TouchableOpacity onPress={shrinkCamera}>
+            <Text style={{color: "white",textAlign: "center",fontSize: 20,fontFamily: "Inter, sans-serif"}}>Vyfotit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )
+  }
+
 class InfoBar extends React.Component {
   state = {
     view: 1,
@@ -141,13 +166,14 @@ class InfoBar extends React.Component {
     itemHeight: 0,
     news: [],
     showGame: false,
-    shrinkGameIcon: false
+    shrinkGameIcon: false,
+    canCastScreenshot: false
   }
 
   setPane(pos) {
     if (pos != this.state.view) {
       this.setState({view: pos})
-      window.location.hash = ["zpravy","hra","info"][pos]
+      window.location.hash = ["kamera","hra","info"][pos]
       this.animateText()
       this.setState({showGame: false});
     }
@@ -159,7 +185,7 @@ class InfoBar extends React.Component {
       this.setState({news: response})
     });
     this.animateText();
-    this.setState({view: Math.abs(["#zpravy","#hra","#info"].indexOf(window.location.hash))})
+    this.setState({view: Math.abs(["#kamera","#hra","#info"].indexOf(window.location.hash))})
     
   }
 
@@ -206,6 +232,10 @@ class InfoBar extends React.Component {
     } else if (l.height * 2.3 < l.width && this.state.shrinkGameIcon) {
       this.setState({shrinkGameIcon: false})
     }
+  } 
+
+  cameraReceivedMedia() {
+    this.setState({canCastScreenshot:true});
   }
 
   render() {
@@ -213,24 +243,14 @@ class InfoBar extends React.Component {
       <Card style={[styles.cardStyle,{flex: 2, marginRight: this.props.margin}]} onLayout={this.props.onLayout}>
         <View style={[styles.infoHeader,{flexDirection: "row"}]}>
           <InfoMenuItem title="KoronaHra" enabled={this.state.view==1} onClick={this.setPane} pos={1} this={this}/>
-          <InfoMenuItem title="Zprávy" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
+          <InfoMenuItem title="Kamera" enabled={this.state.view==0} onClick={this.setPane} pos={0} this={this}/>
           <InfoMenuItem title="Informace" enabled={this.state.view==2} onClick={this.setPane} pos={2} this={this}/>
         </View>
         
         <Animated.View style={{height: "100%", height: "800px", opacity: this.state.opacity}}>
           <ScrollView ref={this.scrollview} style={{padding: 32}}>
             { this.state.view==0 &&
-                <FlatList 
-                data={this.state.news}
-                renderItem={({item, index}) => {
-                  return (
-                    <News heading={item.heading} article={item.article} lnk={item.lnk} mobile={this.props.compactNews}/>
-                  )
-                }}
-                numColumns={1}
-                style={{width: "100%",flex:1}}
-                listKey="news"
-              />
+                <WebcamCapture onUserMedia={this.cameraReceivedMedia}/>
             }
             { this.state.view==1&&!this.state.showGame &&
               <View style={[{flex:1},this.props.compactMode ? {margin:0} : {margin:32}]}>
