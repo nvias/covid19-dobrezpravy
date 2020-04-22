@@ -124,7 +124,7 @@ const WebcamCapture = props =>{
       () => {
         setError(false)
         const imageSrc = camera.current.getScreenshot();
-        fetch('http://34.254.251.230/emotion_predict', {
+        fetch('https://Covid19-DobreZpravy--danielsykora.repl.co/emotion_predict', {
           method: 'POST',
           body: imageSrc
         }).then((response) => {
@@ -338,6 +338,7 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.submit = this.submit.bind(this);
+    this.chat = React.createRef();
   }
 
   render() {
@@ -357,7 +358,7 @@ export default class App extends React.Component {
 
             <Card style={[styles.cardStyle, this.state.mobile || this.state.compactMode ? {marginBottom: 32} : {width: "400px",marginLeft: 32},{height:"600px"}]}>
               <CardHeader title="Náš koronabot" />
-              <ScrollView style={[{flexDirection: "column-reverse"},this.state.coronaBotMessages.length > 5 ? {maxHeight:"532px"} : {maxHeight:"534px"}]}>
+              <ScrollView ref={this.chat} style={[{flexDirection: "column-reverse"},this.state.coronaBotMessages.length > 5 ? {maxHeight:"532px"} : {maxHeight:"534px"}]}>
               <FlatList
               data={this.state.coronaBotMessages.concat(this.state.isBotWriting ? [{by:"writing"}] : [])}
               renderItem={this.botMessages}
@@ -475,7 +476,10 @@ export default class App extends React.Component {
     }
   }
 
+  scrollToMyRef = () => window.scrollTo(0, this.chat.current.offsetBottom) 
+
   askCoronaBot(q) {
+    this.scrollToMyRef()
     let msgs = this.state.coronaBotMessages
     msgs.push({by: "me", msg: q})
     console.log(msgs)
